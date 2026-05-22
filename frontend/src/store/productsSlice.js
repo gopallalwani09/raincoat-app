@@ -9,6 +9,9 @@ export const fetchProducts = createAsyncThunk(
   async (category = 'All') => {
     const url = category === 'All' ? API_URL : `${API_URL}?category=${category}`;
     const response = await axios.get(url);
+    if (!Array.isArray(response.data)) {
+      throw new Error('Invalid API response: Expected an array. Ensure VITE_API_URL is correctly set to the backend URL.');
+    }
     return response.data;
   }
 );
