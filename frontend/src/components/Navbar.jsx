@@ -13,15 +13,15 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50 border-b border-gray-100">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div className="container mx-auto px-4 py-3 flex flex-wrap justify-center sm:justify-between items-center gap-y-3 gap-x-2">
         {/* Logo */}
-        <Link to="/" className="text-base sm:text-2xl font-black text-primary tracking-tight flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <Link to="/" className="text-base sm:text-2xl font-black text-primary tracking-tight flex items-center gap-2 sm:gap-3 flex-shrink-0 w-full sm:w-auto justify-center sm:justify-start">
           <img src="/logo.png" alt="Jai Maa Ambe V.B. Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-full shadow-sm" />
           <span>Jai Maa Ambe<span className="hidden sm:inline"> V.B.</span></span>
         </Link>
         
         {/* Links */}
-        <div className="flex space-x-3 sm:space-x-6 items-center font-bold text-gray-700 text-sm sm:text-base flex-shrink-0">
+        <div className="flex space-x-2 sm:space-x-6 items-center font-bold text-gray-700 text-xs sm:text-base flex-shrink-0">
           <Link to="/shop/Men" className="hover:text-primary transition-colors">Men</Link>
           <Link to="/shop/Women" className="hover:text-primary transition-colors">Women</Link>
           <Link to="/shop/Kids" className="hover:text-primary transition-colors">Kids</Link>

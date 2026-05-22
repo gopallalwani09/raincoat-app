@@ -68,9 +68,8 @@ const Shop = () => {
         <p className="text-gray-500">Explore the best raincoats for {category.toLowerCase()}.</p>
       </div>
 
-      {status === 'succeeded' && (
-        <>
-          <div className="mb-4 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
+      <div>
+        <div className="mb-4 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
           {/* Subcategories Horizontal Scroller */}
           <div className="flex overflow-x-auto no-scrollbar gap-2 -mx-4 px-4 sm:mx-0 sm:px-0 py-1">
             <button
@@ -124,8 +123,7 @@ const Shop = () => {
            />
            <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
         </div>
-      </>
-      )}
+      </div>
 
       {status === 'loading' && (
         <div className="flex justify-center items-center h-64">
