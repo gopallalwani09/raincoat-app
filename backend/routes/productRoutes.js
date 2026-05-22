@@ -13,7 +13,7 @@ const upload = multer({ storage });
 // @desc    Fetch products with filtering, sorting, and pagination
 router.get('/', async (req, res) => {
   try {
-    const { category, subcategory, sort, page, limit } = req.query;
+    const { category, subcategory, sort, page, limit, search } = req.query;
     
     const query = {};
     if (category && category !== 'All') {
@@ -21,6 +21,9 @@ router.get('/', async (req, res) => {
     }
     if (subcategory && subcategory !== 'All') {
       query.subcategory = subcategory;
+    }
+    if (search) {
+      query.title = { $regex: search, $options: 'i' };
     }
 
     let sortOptions = { createdAt: -1 };

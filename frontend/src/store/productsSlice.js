@@ -8,7 +8,7 @@ export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
   async (params = { category: 'All' }) => {
     let queryParams = typeof params === 'string' ? { category: params } : params;
-    const { category = 'All', subcategory, sort, page, limit } = queryParams;
+    const { category = 'All', subcategory, sort, page, limit, search } = queryParams;
     
     const query = new URLSearchParams();
     if (category !== 'All') query.append('category', category);
@@ -16,6 +16,7 @@ export const fetchProducts = createAsyncThunk(
     if (sort) query.append('sort', sort);
     if (page) query.append('page', page);
     if (limit !== undefined) query.append('limit', limit);
+    if (search) query.append('search', search);
     
     const queryString = query.toString();
     const url = queryString ? `${API_URL}?${queryString}` : API_URL;
