@@ -13,34 +13,40 @@ const subcategoriesMap = {
 const Shop = () => {
   const { category } = useParams();
   const dispatch = useDispatch();
-  const { items, status } = useSelector((state) => state.products);
+  const { items, status, totalPages, currentPage } = useSelector((state) => state.products);
   
   const [selectedSubcategory, setSelectedSubcategory] = useState('All');
   const [sortOrder, setSortOrder] = useState('asc'); // asc = low to high, desc = high to low
+  const [page, setPage] = useState(1);
 
+  // When category changes, reset states
   useEffect(() => {
-    dispatch(fetchProducts(category));
     setSelectedSubcategory('All');
     setSortOrder('asc');
-  }, [dispatch, category]);
+    setPage(1);
+  }, [category]);
 
-  const filteredAndSortedItems = useMemo(() => {
-    let result = [...items];
-    
-    if (selectedSubcategory !== 'All') {
-      result = result.filter(item => item.subcategory === selectedSubcategory);
+  // Fetch data whenever parameters change
+  useEffect(() => {
+    dispatch(fetchProducts({ category, subcategory: selectedSubcategory, sort: sortOrder, page, limit: 7 }));
+  }, [dispatch, category, selectedSubcategory, sortOrder, page]);
+
+  const handleSubcategoryChange = (sub) => {
+    setSelectedSubcategory(sub);
+    setPage(1);
+  };
+
+  const handleSortChange = (e) => {
+    setSortOrder(e.target.value);
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    
-    result.sort((a, b) => {
-      if (sortOrder === 'asc') {
-        return a.price - b.price;
-      } else {
-        return b.price - a.price;
-      }
-    });
-    
-    return result;
-  }, [items, selectedSubcategory, sortOrder]);
+  };
 
   return (
     <div className="py-8">
@@ -54,7 +60,7 @@ const Shop = () => {
           {/* Subcategories Horizontal Scroller */}
           <div className="flex overflow-x-auto no-scrollbar gap-2 -mx-4 px-4 sm:mx-0 sm:px-0 py-1">
             <button
-              onClick={() => setSelectedSubcategory('All')}
+              onClick={() => handleSubcategoryChange('All')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex-shrink-0 cursor-pointer ${
                 selectedSubcategory === 'All' 
                   ? 'bg-primary text-white shadow-md' 
@@ -66,7 +72,7 @@ const Shop = () => {
             {subcategoriesMap[category]?.map(sub => (
               <button
                 key={sub}
-                onClick={() => setSelectedSubcategory(sub)}
+                onClick={() => handleSubcategoryChange(sub)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex-shrink-0 cursor-pointer ${
                   selectedSubcategory === sub 
                     ? 'bg-primary text-white shadow-md' 
@@ -84,7 +90,7 @@ const Shop = () => {
               <span className="text-sm text-gray-500 font-medium whitespace-nowrap">Sort by:</span>
               <select 
                 value={sortOrder} 
-                onChange={(e) => setSortOrder(e.target.value)}
+                onChange={handleSortChange}
                 className="bg-transparent text-sm font-semibold text-dark outline-none cursor-pointer focus:outline-none pr-1"
               >
                 <option value="asc">Price: Low to High</option>
@@ -101,18 +107,40 @@ const Shop = () => {
         </div>
       )}
 
-      {status === 'succeeded' && filteredAndSortedItems.length === 0 && (
+      {status === 'succeeded' && items.length === 0 && (
         <div className="text-center text-gray-500 py-20 bg-white rounded-3xl border border-gray-100">
           <p className="text-xl">No products found in this section.</p>
         </div>
       )}
 
-      {status === 'succeeded' && filteredAndSortedItems.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {filteredAndSortedItems.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
-        </div>
+      {status === 'succeeded' && items.length > 0 && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {items.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-12">
+              <button 
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-6 py-3 rounded-full bg-white border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                Previous
+              </button>
+              <span className="text-gray-600 font-medium">Page {currentPage} of {totalPages}</span>
+              <button 
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-6 py-3 rounded-full bg-primary text-white font-semibold hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm shadow-blue-200"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

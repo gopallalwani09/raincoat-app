@@ -39,7 +39,7 @@ const AdminDashboard = () => {
     if (!adminInfo) {
       navigate('/admin/login');
     } else {
-      dispatch(fetchProducts('All'));
+      dispatch(fetchProducts({ category: 'All', limit: 0 }));
     }
   }, [adminInfo, navigate, dispatch]);
 

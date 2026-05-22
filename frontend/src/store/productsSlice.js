@@ -6,12 +6,29 @@ const API_URL = `${API_BASE_URL}/api/products`;
 
 export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
-  async (category = 'All') => {
-    const url = category === 'All' ? API_URL : `${API_URL}?category=${category}`;
+  async (params = { category: 'All' }) => {
+    let queryParams = typeof params === 'string' ? { category: params } : params;
+    const { category = 'All', subcategory, sort, page, limit } = queryParams;
+    
+    const query = new URLSearchParams();
+    if (category !== 'All') query.append('category', category);
+    if (subcategory && subcategory !== 'All') query.append('subcategory', subcategory);
+    if (sort) query.append('sort', sort);
+    if (page) query.append('page', page);
+    if (limit !== undefined) query.append('limit', limit);
+    
+    const queryString = query.toString();
+    const url = queryString ? `${API_URL}?${queryString}` : API_URL;
+
     const response = await axios.get(url);
-    if (!Array.isArray(response.data)) {
-      throw new Error('Invalid API response: Expected an array. Ensure VITE_API_URL is correctly set to the backend URL.');
+    if (!response.data || (!Array.isArray(response.data) && !Array.isArray(response.data.products))) {
+      throw new Error('Invalid API response. Ensure VITE_API_URL is correctly set to the backend URL.');
     }
+    
+    if (Array.isArray(response.data)) {
+      return { products: response.data, totalPages: 1, currentPage: 1, totalProducts: response.data.length };
+    }
+    
     return response.data;
   }
 );
@@ -76,6 +93,9 @@ const productsSlice = createSlice({
   name: 'products',
   initialState: {
     items: [],
+    totalPages: 1,
+    currentPage: 1,
+    totalProducts: 0,
     status: 'idle',
     error: null
   },
@@ -87,7 +107,10 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.items = action.payload;
+        state.items = action.payload.products || [];
+        state.totalPages = action.payload.totalPages || 1;
+        state.currentPage = action.payload.currentPage || 1;
+        state.totalProducts = action.payload.totalProducts || 0;
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.status = 'failed';

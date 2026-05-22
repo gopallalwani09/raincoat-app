@@ -10,14 +10,48 @@ const { storage } = require('../config/cloudinary');
 const upload = multer({ storage });
 
 // @route   GET /api/products
-// @desc    Fetch all products or filter by category
+// @desc    Fetch products with filtering, sorting, and pagination
 router.get('/', async (req, res) => {
   try {
-    const category = req.query.category;
-    const query = category && category !== 'All' ? { category } : {};
-    const products = await Product.find(query).sort({ createdAt: -1 });
-    res.json(products);
+    const { category, subcategory, sort, page, limit } = req.query;
+    
+    const query = {};
+    if (category && category !== 'All') {
+      query.category = category;
+    }
+    if (subcategory && subcategory !== 'All') {
+      query.subcategory = subcategory;
+    }
+
+    let sortOptions = { createdAt: -1 };
+    if (sort === 'asc') {
+      sortOptions = { price: 1 };
+    } else if (sort === 'desc') {
+      sortOptions = { price: -1 };
+    }
+
+    const pageNum = parseInt(page) || 1;
+    // Default limit 7 unless explicitly specified as 0 or another number
+    const limitNum = limit !== undefined && !isNaN(parseInt(limit)) ? parseInt(limit) : 7;
+    
+    let productsQuery = Product.find(query).sort(sortOptions);
+    
+    if (limitNum > 0) {
+      const skip = (pageNum - 1) * limitNum;
+      productsQuery = productsQuery.skip(skip).limit(limitNum);
+    }
+    
+    const products = await productsQuery;
+    const totalProducts = await Product.countDocuments(query);
+    
+    res.json({
+      products,
+      totalPages: limitNum > 0 ? Math.ceil(totalProducts / limitNum) : 1,
+      currentPage: pageNum,
+      totalProducts
+    });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server Error' });
   }
 });
