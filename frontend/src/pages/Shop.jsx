@@ -18,18 +18,31 @@ const Shop = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState('All');
   const [sortOrder, setSortOrder] = useState('asc'); // asc = low to high, desc = high to low
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      if (searchTerm !== debouncedSearch) setPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm, debouncedSearch]);
 
   // When category changes, reset states
   useEffect(() => {
     setSelectedSubcategory('All');
     setSortOrder('asc');
     setPage(1);
+    setSearchTerm('');
+    setDebouncedSearch('');
   }, [category]);
 
   // Fetch data whenever parameters change
   useEffect(() => {
-    dispatch(fetchProducts({ category, subcategory: selectedSubcategory, sort: sortOrder, page, limit: 7 }));
-  }, [dispatch, category, selectedSubcategory, sortOrder, page]);
+    dispatch(fetchProducts({ category, subcategory: selectedSubcategory, sort: sortOrder, page, limit: 7, search: debouncedSearch }));
+  }, [dispatch, category, selectedSubcategory, sortOrder, page, debouncedSearch]);
 
   const handleSubcategoryChange = (sub) => {
     setSelectedSubcategory(sub);
@@ -56,7 +69,8 @@ const Shop = () => {
       </div>
 
       {status === 'succeeded' && (
-        <div className="mb-8 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
+        <>
+          <div className="mb-4 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
           {/* Subcategories Horizontal Scroller */}
           <div className="flex overflow-x-auto no-scrollbar gap-2 -mx-4 px-4 sm:mx-0 sm:px-0 py-1">
             <button
@@ -99,6 +113,18 @@ const Shop = () => {
             </div>
           </div>
         </div>
+
+        <div className="mb-8 max-w-md relative">
+          <input 
+             type="text" 
+             placeholder={selectedSubcategory === 'All' ? `Search all ${category} raincoats...` : `Search ${selectedSubcategory}...`} 
+             value={searchTerm} 
+             onChange={(e) => setSearchTerm(e.target.value)}
+             className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary bg-white shadow-sm text-sm"
+           />
+           <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        </div>
+      </>
       )}
 
       {status === 'loading' && (

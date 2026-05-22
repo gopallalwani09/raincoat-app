@@ -155,26 +155,17 @@ const AdminDashboard = () => {
 
   if (!adminInfo) return null;
 
-  const filteredItems = items.filter(item => 
-    item.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const safeItems = Array.isArray(items) ? items : [];
+  const filteredItems = safeItems.filter(item => 
+    item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="max-w-6xl mx-auto py-6 sm:py-8 px-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 border-b pb-4 gap-4">
+      <div className="mb-6 sm:mb-8 border-b pb-4">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold text-dark">Admin Dashboard</h2>
           <p className="text-gray-500 mt-1 text-sm sm:text-base">Manage store inventory</p>
-        </div>
-        <div className="w-full sm:w-64 relative">
-          <input 
-             type="text" 
-             placeholder="Search inventory..." 
-             value={searchTerm} 
-             onChange={(e) => setSearchTerm(e.target.value)}
-             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary bg-gray-50 text-sm"
-           />
-           <svg className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
         </div>
       </div>
 
@@ -274,7 +265,19 @@ const AdminDashboard = () => {
       </div>
 
       <div>
-        <h3 className="text-2xl font-bold mb-6">Manage Products</h3>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <h3 className="text-2xl font-bold">Manage Products</h3>
+          <div className="w-full sm:w-64 relative">
+            <input 
+               type="text" 
+               placeholder="Search inventory..." 
+               value={searchTerm} 
+               onChange={(e) => setSearchTerm(e.target.value)}
+               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary bg-gray-50 text-sm"
+             />
+             <svg className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          </div>
+        </div>
         {filteredItems.length === 0 ? (
           <p className="text-gray-500">No products found.</p>
         ) : (
