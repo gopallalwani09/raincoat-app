@@ -17,7 +17,7 @@ const AdminDashboard = () => {
   const fileInputRef = useRef();
 
   const { adminInfo } = useSelector((state) => state.auth);
-  const { items } = useSelector((state) => state.products);
+  const { items, totalPages, currentPage } = useSelector((state) => state.products);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -35,14 +35,32 @@ const AdminDashboard = () => {
   const [existingImages, setExistingImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [page, setPage] = useState(1);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      if (searchTerm !== debouncedSearch) setPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm, debouncedSearch]);
 
   useEffect(() => {
     if (!adminInfo) {
       navigate('/admin/login');
     } else {
-      dispatch(fetchProducts({ category: 'All', limit: 0 }));
+      dispatch(fetchProducts({ category: 'All', page, limit: 7, search: debouncedSearch }));
     }
-  }, [adminInfo, navigate, dispatch]);
+  }, [adminInfo, navigate, dispatch, page, debouncedSearch]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -156,9 +174,6 @@ const AdminDashboard = () => {
   if (!adminInfo) return null;
 
   const safeItems = Array.isArray(items) ? items : [];
-  const filteredItems = safeItems.filter(item => 
-    item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="max-w-6xl mx-auto py-6 sm:py-8 px-4">
@@ -278,20 +293,42 @@ const AdminDashboard = () => {
              <svg className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
         </div>
-        {filteredItems.length === 0 ? (
+        {safeItems.length === 0 ? (
           <p className="text-gray-500">No products found.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredItems.map(product => (
-              <ProductCard 
-                key={product._id} 
-                product={product} 
-                isAdminMode={true} 
-                onEdit={handleEdit} 
-                onDelete={handleDelete} 
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {safeItems.map(product => (
+                <ProductCard 
+                  key={product._id} 
+                  product={product} 
+                  isAdminMode={true} 
+                  onEdit={handleEdit} 
+                  onDelete={handleDelete} 
+                />
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-12">
+                <button 
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-6 py-3 rounded-full bg-white border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                >
+                  Previous
+                </button>
+                <span className="text-gray-600 font-medium">Page {currentPage} of {totalPages}</span>
+                <button 
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-6 py-3 rounded-full bg-primary text-white font-semibold hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm shadow-blue-200"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
